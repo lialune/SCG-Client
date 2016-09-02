@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Net;
 using System.IO;
-using System.Net.j
+using JsonFx.Json;
 using Facebook.Unity;
 
 public class Main : MonoBehaviour
@@ -33,7 +33,7 @@ public class Main : MonoBehaviour
         //Sock.Close();
 
         // 웹 통신
-        string uri = "http://" + IP + ":8080/SCG/now.jsp";
+        string uri = "http://" + IP + ":8080/SCG/Test.jsp";
         HttpWebRequest Request = (HttpWebRequest)WebRequest.Create(uri);
         Request.ContentType = "application/x-www-form-urlencoded; charset=euc-kr;";
         Request.ContentLength = uri.Length;
@@ -42,6 +42,9 @@ public class Main : MonoBehaviour
         Stream DataStread = Respone.GetResponseStream();
         StreamReader Reader = new StreamReader(DataStread, System.Text.Encoding.Default);
         string Data = Reader.ReadToEnd();
+        Data.Replace("\r\n", "");
+
+        Dictionary<string, object> dic = JsonReader.Deserialize<Dictionary<string, object>>(Data);
 
         Reader.Close();
         Respone.Close();
@@ -71,6 +74,8 @@ public class Main : MonoBehaviour
         if (FB.IsInitialized)
         {
             FB.ActivateApp();
+
+            ButtonEventLogin();
         }
         else
         {
