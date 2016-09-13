@@ -15,7 +15,7 @@ namespace Homura
         DEC_COUNT
     }
 
-    class Data
+    public class Data
     {
         public const int DATA_DEFAULT_SIZE = 256;
         public const int DATA_MIN_SIZE = 0;
