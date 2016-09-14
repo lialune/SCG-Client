@@ -113,15 +113,22 @@ namespace Homura
         }
     }
 
-    public class RequestManager : MonoBehaviour
+    public class RequestManager
     {
+        public static RequestManager mRequestManager = new RequestManager();
+        req
 
-
-        void Start()
+        RequestManager()
         {
-
         }
 
+        public RequestManager Instance
+        {
+            get
+            {
+                return mRequestManager;
+            }
+        }
 
         void Update()
         {
