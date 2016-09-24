@@ -4,16 +4,6 @@ using System.Collections.Generic;
 
 namespace Homura
 {
-    public enum REQUEST_ERROR_CODE
-    {
-        REC_NOT_DEFINE_REQUEST_TYPE = DATA_ERROR_CODE.DEC_COUNT,
-        REC_COMPLETE,
-        REC_FAIL_NEW,
-        REC_OVERLAP_KEY,
-        REC_NOT_REGIST_KEY,
-        REC_COUNT
-    }
-
     public enum REQUEST_TYPE
     {
         RT_NONE,
@@ -27,22 +17,31 @@ namespace Homura
         REQUEST_TYPE mRequestType;
         int mID;
 
-        public Request()
+        public Request(int _ID)
         {
+            mID = _ID;
         }
 
-        public REQUEST_ERROR_CODE Initialize(REQUEST_TYPE _RequestType = REQUEST_TYPE.RT_NONE, int _BufferSize = Data.DATA_DEFAULT_SIZE)
+        public int ID
         {
-            DATA_ERROR_CODE ErrorCode = base.Initialize(_BufferSize);
-
-            if (DATA_ERROR_CODE.DEC_COMPLETE != ErrorCode)
+            get
             {
-                return (REQUEST_ERROR_CODE)ErrorCode;
+                return mID;
+            }
+        }
+
+        public ERROR_CODE Initialize(REQUEST_TYPE _RequestType = REQUEST_TYPE.RT_NONE, int _BufferSize = Data.DATA_DEFAULT_SIZE)
+        {
+            ERROR_CODE ErrorCode = base.Initialize(_BufferSize);
+
+            if (ERROR_CODE.HEC_COMPLETE != ErrorCode)
+            {
+                return (ERROR_CODE)ErrorCode;
             }
 
             if (REQUEST_TYPE.RT_NONE > _RequestType || REQUEST_TYPE.RT_COUNT <= _RequestType)
             {
-                return REQUEST_ERROR_CODE.REC_NOT_DEFINE_REQUEST_TYPE;
+                return ERROR_CODE.HEC_NOT_DEFINE_REQUEST_TYPE;
             }
 
             mRequestType = _RequestType;
@@ -52,7 +51,7 @@ namespace Homura
                 mParamList = new Dictionary<string, string>();
                 if (null == mParamList)
                 {
-                    return REQUEST_ERROR_CODE.REC_FAIL_NEW;
+                    return ERROR_CODE.HEC_FAIL_NEW;
                 }
             }
             else
@@ -60,14 +59,14 @@ namespace Homura
                 mParamList.Clear();
             }
 
-            return REQUEST_ERROR_CODE.REC_COMPLETE;
+            return ERROR_CODE.HEC_COMPLETE;
         }
 
-        public REQUEST_ERROR_CODE AddParam(string _Key, string _Value)
+        public ERROR_CODE AddParam(string _Key, string _Value)
         {
             if(null == _Key || null == _Value)
             {
-                return (REQUEST_ERROR_CODE)DATA_ERROR_CODE.DEC_NULL_DATA;
+                return ERROR_CODE.HEC_NULL_DATA;
             }
 
             try
@@ -76,25 +75,25 @@ namespace Homura
             }
             catch(System.ArgumentException)
             {
-                return REQUEST_ERROR_CODE.REC_OVERLAP_KEY;
+                return ERROR_CODE.HEC_OVERLAP_KEY;
             }
             
-            return REQUEST_ERROR_CODE.REC_COMPLETE;
+            return ERROR_CODE.HEC_COMPLETE;
         }
 
-        public REQUEST_ERROR_CODE RemoveParam(string _Key)
+        public ERROR_CODE RemoveParam(string _Key)
         {
             if(null == _Key)
             {
-                return (REQUEST_ERROR_CODE)DATA_ERROR_CODE.DEC_NULL_DATA;
+                return ERROR_CODE.HEC_NULL_DATA;
             }
 
             if(mParamList.Remove(_Key))
             {
-                return REQUEST_ERROR_CODE.REC_COMPLETE;
+                return ERROR_CODE.HEC_COMPLETE;
             }
 
-            return REQUEST_ERROR_CODE.REC_NOT_REGIST_KEY;
+            return ERROR_CODE.HEC_NOT_REGIST_KEY;
         }
 
         public Dictionary<string, string> ParamList
@@ -105,18 +104,41 @@ namespace Homura
             }
         }
 
-        public REQUEST_ERROR_CODE GetRequest(out string _Str)
+        public ERROR_CODE GetRequest(out string _Str)
         {
             _Str = new string(GetBuffer());
 
-            return REQUEST_ERROR_CODE.REC_COMPLETE;
+            return ERROR_CODE.HEC_COMPLETE;
         }
     }
 
     public class RequestManager
     {
+        enum REQUEST_STATE
+        {
+            RT_NOT_USING,
+            RT_USING
+        }
+
+        class REQUEST_NODE
+        {
+            public REQUEST_STATE mState;
+            public Request mRequest;
+
+            public REQUEST_NODE(int _ID)
+            {
+                mRequest = new Request(_ID);
+            }
+        }
+
+        const int DEFAULT_REQUEST_COUNT = 10;
+        const int INIT_CREATE_REQUEST_MIN_COUNT = 1;
+
         public static RequestManager mRequestManager = new RequestManager();
-        req
+
+        int mUsigRequestCount;
+        int mNextCreateRequestID;
+        LinkedList<REQUEST_NODE> mRequestList;
 
         RequestManager()
         {
@@ -130,9 +152,70 @@ namespace Homura
             }
         }
 
-        void Update()
+        public ERROR_CODE Initialize(int _InitCreateReQuestCount = DEFAULT_REQUEST_COUNT)
+        {
+            if(INIT_CREATE_REQUEST_MIN_COUNT > _InitCreateReQuestCount)
+            {
+                return ERROR_CODE.HEC_BELOW_ZERO_TO_SIZE;
+            }
+
+            //
+
+            return ERROR_CODE.HEC_COMPLETE;
+        }
+
+        public void Update()
         {
 
+        }
+
+        //싱글 스레드라는 가정하에, ID는 함수 성공시에 증가
+        ERROR_CODE CreateRequest(REQUEST_TYPE _RequestType = REQUEST_TYPE.RT_NONE, int _BufferSize = Data.DATA_DEFAULT_SIZE)
+        {
+            REQUEST_NODE NewRequest = new REQUEST_NODE(mNextCreateRequestID);
+
+            if(null == NewRequest)
+            {
+                return ERROR_CODE.HEC_FAIL_NEW;
+            }
+
+            ERROR_CODE ErrorCode = NewRequest.mRequest.Initialize(_RequestType, _BufferSize);
+            if(ERROR_CODE.HEC_COMPLETE != ErrorCode)
+            {
+                return ErrorCode;
+            }
+
+            NewRequest.mState = REQUEST_STATE.RT_NOT_USING;
+
+            mRequestList.AddLast(NewRequest);
+
+            ++mNextCreateRequestID;
+
+            return ERROR_CODE.HEC_COMPLETE;
+        }
+
+        ERROR_CODE GetRequest(out Request _OutRequest)
+        {
+            _OutRequest = null;
+
+            if(mRequestList.Count <= mUsigRequestCount)
+            {
+                ERROR_CODE ErrorCode = CreateRequest();
+
+                if(ERROR_CODE.HEC_COMPLETE != ErrorCode)
+                {
+                    return ErrorCode;
+                }
+            }
+
+            if(mRequestList.Count > mUsigRequestCount + 1)
+            {
+                REQUEST_NODE Temp = mRequestList.Last.Value;
+                // 여기부터 해야함
+                //mRequestList.Last.Value = mRequestList
+            }
+
+            return ERROR_CODE.HEC_COMPLETE;
         }
     }
 }
