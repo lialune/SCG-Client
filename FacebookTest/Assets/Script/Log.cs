@@ -1,15 +1,29 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Log : MonoBehaviour {
+namespace Homura
+{
+    public class Log
+    {
+        static Log mInstance = new Log();
 
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+        public Log Instanec
+        {
+            get
+            {
+                return mInstance;
+            }
+        }
+
+        public ERROR_CODE Initialize()
+        {
+
+            return ERROR_CODE.HEC_COMPLETE;
+        }
+
+        public void Update()
+        {
+
+        }
+    }
 }

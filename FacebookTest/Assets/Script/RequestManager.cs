@@ -134,11 +134,11 @@ namespace Homura
         const int DEFAULT_REQUEST_COUNT = 10;
         const int INIT_CREATE_REQUEST_MIN_COUNT = 1;
 
-        public static RequestManager mRequestManager = new RequestManager();
+        static RequestManager mRequestManager = new RequestManager();
 
         int mUsigRequestCount;
         int mNextCreateRequestID;
-        LinkedList<REQUEST_NODE> mRequestList;
+        List<REQUEST_NODE> mRequestList = null;
 
         RequestManager()
         {
@@ -159,15 +159,41 @@ namespace Homura
                 return ERROR_CODE.HEC_BELOW_ZERO_TO_SIZE;
             }
 
-            //
+            if(null == mRequestList)
+            {
+                mRequestList = new List<REQUEST_NODE>();
+
+                if(null == mRequestList)
+                {
+                    return ERROR_CODE.HEC_FAIL_NEW;
+                }
+            }
+
+            for (int i = 0; _InitCreateReQuestCount > i; ++i)
+            {
+                if(ERROR_CODE.HEC_COMPLETE != CreateRequest())
+                {
+                    return ERROR_CODE.HEC_FAIL_NEW;
+                }
+            }
 
             return ERROR_CODE.HEC_COMPLETE;
         }
 
-        public void Update()
+        public ERROR_CODE Release()
         {
+            if(null != mRequestList)
+            {
+                mRequestList.Clear();
+            }
 
+            return ERROR_CODE.HEC_COMPLETE;
         }
+
+        //public void Update()
+        //{
+
+        //}
 
         //싱글 스레드라는 가정하에, ID는 함수 성공시에 증가
         ERROR_CODE CreateRequest(REQUEST_TYPE _RequestType = REQUEST_TYPE.RT_NONE, int _BufferSize = Data.DATA_DEFAULT_SIZE)
@@ -187,7 +213,7 @@ namespace Homura
 
             NewRequest.mState = REQUEST_STATE.RT_NOT_USING;
 
-            mRequestList.AddLast(NewRequest);
+            mRequestList.Add(NewRequest);
 
             ++mNextCreateRequestID;
 
@@ -208,11 +234,37 @@ namespace Homura
                 }
             }
 
-            if(mRequestList.Count > mUsigRequestCount + 1)
+            if (mRequestList.Count > mUsigRequestCount + 1)
             {
-                REQUEST_NODE Temp = mRequestList.Last.Value;
-                // 여기부터 해야함
-                //mRequestList.Last.Value = mRequestList
+                REQUEST_NODE Temp = mRequestList[mRequestList.Count];
+
+                mRequestList[mRequestList.Count] = mRequestList[mUsigRequestCount];
+                mRequestList[mUsigRequestCount] = Temp;
+                mRequestList[mUsigRequestCount].mState = REQUEST_STATE.RT_USING;
+            }
+            _OutRequest = mRequestList[mUsigRequestCount].mRequest;
+            ++mUsigRequestCount;
+
+            return ERROR_CODE.HEC_COMPLETE;
+        }
+
+        ERROR_CODE ReturnRequest(int _ID)
+        {
+            if( 0 > _ID || mRequestList.Count <= _ID)
+            {
+                return ERROR_CODE.HEC_NOT_VALID_KEY;
+            }
+
+            for(int i = 0; mRequestList.Count > i; ++i)
+            {
+                if(_ID == mRequestList[i].mRequest.ID)
+                {
+                    REQUEST_NODE Temp = mRequestList[i];
+                    mRequestList[i].mState = REQUEST_STATE.RT_NOT_USING;
+                    mRequestList[i] = mRequestList[--mUsigRequestCount];
+                    mRequestList[mUsigRequestCount] = Temp;
+                    break;
+                }
             }
 
             return ERROR_CODE.HEC_COMPLETE;
