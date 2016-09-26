@@ -13,6 +13,7 @@
         HEC_OVERLAP_KEY,
         HEC_NOT_REGIST_KEY,
         HEC_NOT_VALID_KEY,
+        HEC_NOT_VALID_VALUE,
         HEC_COUNT
     }
 }
