@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -8,6 +9,7 @@ namespace Homura
     {
         public enum WARNING_LEVEL
         {
+            WL_NONE = -1,
             WL_1, // 프로그램 진행에 아무런 영향이없거나 미미한 경우
             WL_2, // 프로그램 진행에 영향을 가할 수 있는 경우
             WL_3, // 프로그램 진행에 중대한 영향을 가할 수 있는 경우
@@ -38,6 +40,7 @@ namespace Homura
         string mNowSavePath;
         float mElapsedTime;
         float mSaveInterval;
+        StreamWriter mFileWriter;
 
         public Log Instanec
         {
@@ -47,7 +50,7 @@ namespace Homura
             }
         }
 
-        // Interval을 0으로 할 시, 프레임단위로 진행
+        // Interval을 0으로 할 시, 프레임단위로 진행 프레임 단위 이외를 원한다면 프레임 단위보다 큰값을 넣을 것
         public ERROR_CODE Initialize(float _mSaveInterval)
         {
             if(null == mLogList)
@@ -72,10 +75,37 @@ namespace Homura
                 return ERROR_CODE.HEC_NOT_VALID_VALUE;
             }
 
-            if(0 < _mSaveInterval)
+            else
             {
-                _mSaveInterval = mElapsedTime = _mSaveInterval;
+                mSaveInterval = mElapsedTime = _mSaveInterval;
             }
+
+            if(null != mFileWriter)
+            {
+                mFileWriter.Close();
+            }
+            mFileWriter = null;
+
+            return ERROR_CODE.HEC_COMPLETE;
+        }
+
+        public ERROR_CODE Logged(WARNING_LEVEL _Level, string _Text)
+        {
+            if( WARNING_LEVEL.WL_1 > _Level)
+            {
+                return ERROR_CODE.HEC_NOT_VALID_WANING_LEVEL;
+            }
+
+            if(null == _Text)
+            {
+                return ERROR_CODE.HEC_NULL_DATA;
+            }
+
+            LOG_NODE NewLog = new LOG_NODE();
+            NewLog.mLevel = _Level;
+            NewLog.mLog = _Text;
+
+            mLogList.Add(NewLog);
 
             return ERROR_CODE.HEC_COMPLETE;
         }
@@ -85,25 +115,32 @@ namespace Homura
             System.DateTime Time = System.DateTime.Now;
             mNowSavePath = mDefaultSavePath + Time.Year + "/" + Time.Month + "/" + Time.Day;
 
-            System.IO.DirectoryInfo DI = new System.IO.DirectoryInfo(mNowSavePath);
+            DirectoryInfo DI = new System.IO.DirectoryInfo(mNowSavePath);
             if(!DI.Exists)
             {
                 DI.Create();
             }
 
-            System.IO.FileInfo FI = new System.IO.FileInfo(mNowSavePath + "/" + Time.Hour + Time.Minute + ".txt");
+            mNowSavePath = mNowSavePath + "/" + Time.Hour + Time.Minute + ".txt";
+            System.IO.FileInfo FI = new System.IO.FileInfo(mNowSavePath);
             if(!FI.Exists)
             {
                 FI.Create();
+                if (null != mFileWriter)
+                {
+                    mFileWriter.Close();
+                }
+                mFileWriter = new StreamWriter(mNowSavePath);
+                mFileWriter.AutoFlush = false;
             }
         }
 
-        void LogText(WARNING_LEVEL _Level, string _Text)
+        void LogText(string _Text)
         {
-            // 여기부터
+            mFileWriter.WriteLine(_Text);
         }
 
-        void UpdateInterval()
+        public void Update()
         {
             mElapsedTime -= Time.deltaTime;
             if(0f >= mElapsedTime)
@@ -118,15 +155,13 @@ namespace Homura
 
                     if (0 != (LOG_SAVE_TYPE.LST_TEXT & mLogSaveType[(int)Enumer.Current.mLevel]))
                     {
-                        Debug.Log(Enumer.Current.mLevel + " : " + Enumer.Current.mLog);
+                        LogText(Enumer.Current.mLevel + " : " + Enumer.Current.mLog);
                     }
                 }
+                mFileWriter.Flush();
+                mElapsedTime = mSaveInterval;
+                mLogList.Clear();
             }
-        }
-
-        void UpdateFrame()
-        {
-
         }
     }
 }

@@ -14,6 +14,7 @@
         HEC_NOT_REGIST_KEY,
         HEC_NOT_VALID_KEY,
         HEC_NOT_VALID_VALUE,
+        HEC_NOT_VALID_WANING_LEVEL,
         HEC_COUNT
     }
 }
