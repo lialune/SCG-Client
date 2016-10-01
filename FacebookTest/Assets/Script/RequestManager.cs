@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 namespace Homura
 {
+    using PARAM_LIST = Dictionary<string, string>;
+
     public enum REQUEST_TYPE
     {
         RT_NONE,
@@ -13,7 +15,7 @@ namespace Homura
     public class Request : Homura.Data
     {
         // KeyName, Value
-        Dictionary<string, string> mParamList;
+        PARAM_LIST mParamList;
         REQUEST_TYPE mRequestType;
         int mID;
 
@@ -48,7 +50,7 @@ namespace Homura
 
             if (null == mParamList)
             {
-                mParamList = new Dictionary<string, string>();
+                mParamList = new PARAM_LIST();
                 if (null == mParamList)
                 {
                     return ERROR_CODE.HEC_FAIL_NEW;
@@ -60,6 +62,22 @@ namespace Homura
             }
 
             return ERROR_CODE.HEC_COMPLETE;
+        }
+
+        public ERROR_CODE SetRequestType(REQUEST_TYPE _RequestType)
+        {
+            if(REQUEST_TYPE.RT_NONE > _RequestType || REQUEST_TYPE.RT_COUNT <= _RequestType)
+            {
+                return ERROR_CODE.HEC_NOT_DEFINE_REQUEST_TYPE;
+            }
+            mRequestType = _RequestType;
+
+            return ERROR_CODE.HEC_COMPLETE;
+        }
+
+        public REQUEST_TYPE GetRequestType()
+        {
+            return mRequestType;
         }
 
         public ERROR_CODE AddParam(string _Key, string _Value)
@@ -144,7 +162,7 @@ namespace Homura
         {
         }
 
-        public RequestManager Instance
+        public static RequestManager Instance
         {
             get
             {
@@ -189,11 +207,6 @@ namespace Homura
 
             return ERROR_CODE.HEC_COMPLETE;
         }
-
-        //public void Update()
-        //{
-
-        //}
 
         //싱글 스레드라는 가정하에, ID는 함수 성공시에 증가
         ERROR_CODE CreateRequest(REQUEST_TYPE _RequestType = REQUEST_TYPE.RT_NONE, int _BufferSize = Data.DATA_DEFAULT_SIZE)

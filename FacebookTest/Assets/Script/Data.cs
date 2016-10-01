@@ -88,7 +88,7 @@ namespace Homura
 
             if (mBufferSize - mUsingSize < _Size)
             {
-                ERROR_CODE ErrorCode = BufferSizeUp();
+                ERROR_CODE ErrorCode = BufferSizeOptimazationUp(mBufferSize - mUsingSize + _Size);
                 if (ERROR_CODE.HEC_COMPLETE != ErrorCode)
                 {
                     return ErrorCode;
@@ -97,6 +97,55 @@ namespace Homura
 
             Buffer.BlockCopy(_Data, 0, mBuffer, mUsingSize, _Size);
             mUsingSize += _Size;
+
+            return ERROR_CODE.HEC_COMPLETE;
+        }
+
+        public ERROR_CODE Append(string _Data)
+        {
+            if(null == _Data)
+            {
+                return ERROR_CODE.HEC_NULL_DATA;
+            }
+
+            if (mBufferSize - mUsingSize < _Data.Length)
+            {
+                ERROR_CODE ErrorCode = BufferSizeOptimazationUp(mBufferSize - mUsingSize + _Data.Length);
+                if (ERROR_CODE.HEC_COMPLETE != ErrorCode)
+                {
+                    return ErrorCode;
+                }
+            }
+
+            Buffer.BlockCopy(_Data.ToCharArray(), 0, mBuffer, mUsingSize, _Data.Length);
+            mUsingSize += _Data.Length;
+
+            return ERROR_CODE.HEC_COMPLETE;
+        }
+
+        public ERROR_CODE Append(string _Data, int _Offset, int _Length)
+        {
+            if (null == _Data)
+            {
+                return ERROR_CODE.HEC_NULL_DATA;
+            }
+
+            if(1 > _Offset || 1 > _Length)
+            {
+                return ERROR_CODE.HEC_NOT_VALID_VALUE;
+            }
+
+            if (mBufferSize - mUsingSize < _Length)
+            {
+                ERROR_CODE ErrorCode = BufferSizeOptimazationUp(mBufferSize - mUsingSize + _Length);
+                if (ERROR_CODE.HEC_COMPLETE != ErrorCode)
+                {
+                    return ErrorCode;
+                }
+            }
+
+            Buffer.BlockCopy(_Data.ToCharArray(), 0, mBuffer, mUsingSize, _Data.Length);
+            mUsingSize += _Data.Length;
 
             return ERROR_CODE.HEC_COMPLETE;
         }
@@ -139,6 +188,7 @@ namespace Homura
             mReadPos = 0;
         }
 
+        // 버퍼사이즈 2배씩 업
         ERROR_CODE BufferSizeUp()
         {
             char[] NewBuffer = new char[mBufferSize * 2];
@@ -153,6 +203,41 @@ namespace Homura
             mBufferSize <<= 1;
 
             return ERROR_CODE.HEC_COMPLETE;
+        }
+
+        // 버퍼사이즈를 _Size값 만큼 조절 줄어들경우 _Size보다 뒤에 있던 값들은 사라진다
+        ERROR_CODE BufferReSize(int _Size)
+        {
+            if (1 > _Size)
+            {
+                return ERROR_CODE.HEC_BELOW_ZERO_TO_SIZE;
+            }
+
+            char[] NewBuffer = new char[_Size];
+
+            if (null == NewBuffer)
+            {
+                return ERROR_CODE.HEC_FAIL_CREATE_BUFFER;
+            }
+
+            Buffer.BlockCopy(mBuffer, 0, NewBuffer, 0, NewBuffer.Length);
+            mBuffer = NewBuffer;
+            mBufferSize = _Size;
+
+            return ERROR_CODE.HEC_COMPLETE;
+        }
+
+        // 버퍼 사이즈를 _Size를 최적화(2의 배수화 한 값)한 값으로 조절한다. 줄어들 경우 _Size보다 뒤에 있던 값들은 사라진다
+        ERROR_CODE BufferSizeOptimazationUp(int _Size)
+        {
+            if(1 > _Size)
+            {
+                return ERROR_CODE.HEC_BELOW_ZERO_TO_SIZE;
+            }
+
+            int NewSize = OptimazationBufferSize(_Size);
+
+            return BufferReSize(NewSize);
         }
 
         int OptimazationBufferSize(int _Size)
