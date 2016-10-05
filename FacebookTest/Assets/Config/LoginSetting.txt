@@ -1,0 +1,4 @@
+{
+	"LoginType" : "None"
+	"LoginID" : ""
+}

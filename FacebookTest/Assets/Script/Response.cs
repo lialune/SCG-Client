@@ -79,5 +79,10 @@ namespace Homura
             }
             
         }
+
+        public REQUEST_TYPE GetRequestType()
+        {
+            return mRequestType;
+        }
     }
 }

@@ -11,6 +11,6 @@ C:\Users\lialune\Documents\SCG\Client\FacebookTest\Temp\UnityVS_bin\Debug\UnityE
 C:\Users\lialune\Documents\SCG\Client\FacebookTest\Temp\UnityVS_bin\Debug\UnityEngine.UI.xml
 C:\Users\lialune\Documents\SCG\Client\FacebookTest\Temp\UnityVS_bin\Debug\UnityEngine.Networking.xml
 C:\Users\lialune\Documents\SCG\Client\FacebookTest\Temp\UnityVS_bin\Debug\UnityEditor.xml
-C:\Users\lialune\Documents\SCG\Client\FacebookTest\Temp\UnityVS_obj\Debug\FacebookTest.CSharp.csprojResolveAssemblyReference.cache
 C:\Users\lialune\Documents\SCG\Client\FacebookTest\Temp\UnityVS_obj\Debug\Assembly-CSharp.dll
 C:\Users\lialune\Documents\SCG\Client\FacebookTest\Temp\UnityVS_obj\Debug\Assembly-CSharp.pdb
+C:\Users\lialune\Documents\SCG\Client\FacebookTest\Temp\UnityVS_obj\Debug\FacebookTest.CSharp.csprojResolveAssemblyReference.cache

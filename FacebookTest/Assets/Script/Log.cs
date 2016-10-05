@@ -23,6 +23,7 @@ namespace Homura
             LST_CONSOLE = 0x01,
             LST_TEXT = 0x02,
             LST_DB = 0x04, //DB에 저장은 나중에 추가 할 수도 있음
+            LST_CONSOLE_AND_TEXT = LST_CONSOLE | LST_TEXT,
         }
 
         struct LOG_NODE
@@ -106,6 +107,18 @@ namespace Homura
             NewLog.mLog = _Text;
 
             mLogList.Add(NewLog);
+
+            return ERROR_CODE.HEC_COMPLETE;
+        }
+
+        public ERROR_CODE SetSaveType(WARNING_LEVEL _Level, LOG_SAVE_TYPE _SaveType)
+        {
+            if(WARNING_LEVEL.WL_NONE >= _Level || WARNING_LEVEL.WL_COUNT <= _Level)
+            {
+                return ERROR_CODE.HEC_NOT_VALID_KEY;
+            }
+
+            mLogSaveType[(int)_Level] = _SaveType;
 
             return ERROR_CODE.HEC_COMPLETE;
         }

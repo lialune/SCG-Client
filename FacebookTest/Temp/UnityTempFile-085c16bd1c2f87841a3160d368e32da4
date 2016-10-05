@@ -95,6 +95,7 @@ Assets/FacebookSDK/Examples/Scripts/SubMenus/MainMenu.cs
 Assets/FacebookSDK/Examples/Scripts/SubMenus/Pay.cs
 Assets/Script/Data.cs
 Assets/Script/ErrorCode.cs
+Assets/Script/FacebookModule.cs
 Assets/Script/Log.cs
 Assets/Script/Main.cs
 Assets/Script/RequestManager.cs
