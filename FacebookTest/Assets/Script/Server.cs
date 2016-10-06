@@ -12,14 +12,30 @@ namespace Homura
     using REQUEST_CALLBACK_FUNC_LIST = Dictionary<REQUEST_TYPE, REQUEST_CALLBACK_FUNC>;
     delegate ERROR_CODE REQUEST_CALLBACK_FUNC(Response _Responese);
 
+    public enum LOGIN_MODULE_TYPE
+    {
+        LMT_FACEBOOK,
+        LMT_GOOLE_PLUS,
+    }
+
+    public enum LOGIN_STATE
+    {
+        LS_NONE,
+        LS_WAIT_LOGIN,
+        LS_LOGIN_SUCCESS,
+        LS_LOGIN_FAIL
+    }
+
     public class Server : MonoBehaviour
     {
         string IP;
         string Port;
         string ProjectName;
         string DefaultUri;
+        LOGIN_STATE mLoginState;
         PAGE_NAME_LIST mPageNameList;
         REQUEST_CALLBACK_FUNC_LIST mRequestCallbackList;
+        FacebookModule mFaceBookModule;
 
         ERROR_CODE Initialize()
         {
@@ -60,7 +76,7 @@ namespace Homura
                 return ErrorCode;
             }
 
-            // 수정 해야함
+            // 서버 세팅 읽기 시작
             StreamReader sr = new StreamReader("Assets/Config/Server.txt");
             string Data = sr.ReadToEnd();
             PARAM_LIST ParamList = JsonReader.Deserialize<PARAM_LIST>(Data);
@@ -68,18 +84,17 @@ namespace Homura
             {
                 return ERROR_CODE.HEC_FAIL_FILE_READ;
             }
-
-            IP = ParamList["IP"].ToString();
+            IP = ParamList["IP"];
             if (null == IP || "" == IP)
             {
                 return ERROR_CODE.HEC_FAIL_FILE_READ;
             }
-            Port = ParamList["Port"].ToString();
+            Port = ParamList["Port"];
             if (null == Port || "" == Port)
             {
                 return ERROR_CODE.HEC_FAIL_FILE_READ;
             }
-            ProjectName = ParamList["ProjectName"].ToString();
+            ProjectName = ParamList["ProjectName"];
             if (null == ProjectName || "" == ProjectName)
             {
                 return ERROR_CODE.HEC_FAIL_FILE_READ;
@@ -88,10 +103,23 @@ namespace Homura
             {
                 DefaultUri = "http://" + IP + ":" + Port + "/" + ProjectName + "/";
             }
+            // 서버 세팅 읽기 완료
+
+            if(null == mFaceBookModule)
+            {
+                mFaceBookModule = new FacebookModule();
+            }
+            else
+            {
+                mFaceBookModule.Initialize();
+            }
+            
+            mLoginState = LOGIN_STATE.LS_NONE;
 
             return ERROR_CODE.HEC_COMPLETE;
         }
 
+        // 비동기 메시지 전송용 함수
         IEnumerator RequestMessage(Request _Request)
         {
             if (null == _Request)
@@ -101,7 +129,7 @@ namespace Homura
             }
 
             // 요청 시작
-            WWW WebObj = new WWW(DefaultUri + mPageNameList[_Request.GetRequestType()]);
+            WWW WebObj = new WWW(DefaultUri + mPageNameList[_Request.GetRequestType()] + "/" + _Request);
             yield return WebObj;
             //요청 에러 여부 확인
             if (!string.IsNullOrEmpty(WebObj.error))
@@ -152,6 +180,38 @@ namespace Homura
             return ERROR_CODE.HEC_COMPLETE;
         }
 
+        public ERROR_CODE Login(LOGIN_MODULE_TYPE _Type)
+        {
+            switch(_Type)
+            {
+                case LOGIN_MODULE_TYPE.LMT_FACEBOOK:
+                    {
+                        mFaceBookModule.Initialize();
+                        mFaceBookModule.Login();
+                    }break;
+                case LOGIN_MODULE_TYPE.LMT_GOOLE_PLUS:
+                    {
+                    }break;
+                default:
+                    {
+                        return ERROR_CODE.HEC_NOT_VALID_VALUE;
+                    }
+            }
+            return ERROR_CODE.HEC_COMPLETE;
+        }
+
+        public LOGIN_STATE LoginState
+        {
+            set
+            {
+                mLoginState = value;
+            }
+            get
+            {
+                return mLoginState;
+            }
+        }
+
         ERROR_CODE AddRequestCallBack(REQUEST_TYPE _RequestType, REQUEST_CALLBACK_FUNC _Func)
         {
             if (REQUEST_TYPE.RT_NONE >= _RequestType || REQUEST_TYPE.RT_COUNT <= _RequestType)
@@ -175,15 +235,6 @@ namespace Homura
             return ERROR_CODE.HEC_COMPLETE;
         }
 
-        void Start()
-        {
-            ERROR_CODE ErrorCode = Initialize();
-            if(ERROR_CODE.HEC_COMPLETE != ErrorCode)
-            {
-                Log.Instanec.Logged(Log.WARNING_LEVEL.WL_4, "Fail Server.Initialize" + ErrorCode);
-            }
-        }
-
         void Awake()
         {
             ERROR_CODE ErrorCode = Initialize();
@@ -196,6 +247,21 @@ namespace Homura
         void Update()
         {
             Log.Instanec.Update();
+
+            switch(mLoginState)
+            {
+                case LOGIN_STATE.LS_LOGIN_SUCCESS:
+                    {
+                        Homura.Request Req;
+                        RequestManager.Instance.GetRequest(out Req);
+
+                        Req.Initialize(REQUEST_TYPE.RT_LOGIN);
+                        Req.AddParam("Type", "F");
+                        Req.AddParam("ID", mFaceBookModule.GetParam("ID"));
+
+                        StartCoroutine(RequestMessage(Req));
+                    }break;
+            }
         }
     }
 }

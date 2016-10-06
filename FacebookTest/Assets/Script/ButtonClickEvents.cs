@@ -8,11 +8,10 @@ namespace Homura
     {
         public void FaceBookLogin()
         {
-            Homura.FacebookModule Module = GameObject.FindGameObjectWithTag("LoginModule").GetComponent<Homura.FacebookModule>();
+            Server Module = GameObject.FindGameObjectWithTag("Server").GetComponent<Homura.Server>();
             if(null != Module)
             {
-                Module.Initialize();
-                Module.Login();
+                Module.Login(LOGIN_MODULE_TYPE.LMT_FACEBOOK);
             }
         }
 

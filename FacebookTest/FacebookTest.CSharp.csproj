@@ -13,13 +13,11 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile>
-    </CompilerResponseFile>
+    <CompilerResponseFile></CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.3.4f1</UnityVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <LangVersion Condition=" '$(VisualStudioVersion)' != '10.0' ">4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -100,6 +98,17 @@
   <ItemGroup>
     <None Include="Assets\Config\LoginSetting.txt" />
     <None Include="Assets\Config\Server.txt" />
+    <None Include="Assets\Log\2016\10\6\1442.txt" />
+    <None Include="Assets\Log\2016\10\6\1447.txt" />
+    <None Include="Assets\Log\2016\10\6\1450.txt" />
+    <None Include="Assets\Log\2016\10\6\1452.txt" />
+    <None Include="Assets\Log\2016\10\6\1453.txt" />
+    <None Include="Assets\Log\2016\10\6\1610.txt" />
+    <None Include="Assets\Log\2016\10\6\1611.txt" />
+    <None Include="Assets\Log\2016\10\6\1612.txt" />
+    <None Include="Assets\Log\2016\10\6\1613.txt" />
+    <None Include="Assets\Log\2016\10\6\1614.txt" />
+    <None Include="Assets\Log\2016\10\6\1615.txt" />
     <None Include="Assets\Plugins\Android\AndroidManifest.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />

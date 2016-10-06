@@ -1,4 +1,4 @@
 {
-	"LoginType" : "None"
-	"LoginID" : ""
+	'LoginType' : 'None'
+	'LoginID' : ''
 }

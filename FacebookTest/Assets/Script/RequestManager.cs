@@ -9,6 +9,7 @@ namespace Homura
     public enum REQUEST_TYPE
     {
         RT_NONE,
+        RT_LOGIN,
         RT_COUNT
     }
 
@@ -128,6 +129,32 @@ namespace Homura
 
             return ERROR_CODE.HEC_COMPLETE;
         }
+
+        public ERROR_CODE CreateUriParam(out string _UriParam)
+        {
+            _UriParam = "";
+
+            if(null == mParamList)
+            {
+                return ERROR_CODE.HEC_NONE_SAVE_DATA;
+            }
+
+            if(0 == mParamList.Count)
+            {
+                return ERROR_CODE.HEC_NONE_SAVE_DATA;
+            }
+
+            _UriParam += "?";
+            PARAM_LIST.Enumerator Enumer = mParamList.GetEnumerator();
+            while(Enumer.MoveNext())
+            {
+                _UriParam = _UriParam + Enumer.Current.Key + "=" + Enumer.Current.Value;
+                //여기부터 해야함
+                mParamList.
+            }
+
+            return ERROR_CODE.HEC_COMPLETE;
+        }
     }
 
     public class RequestManager
@@ -208,32 +235,7 @@ namespace Homura
             return ERROR_CODE.HEC_COMPLETE;
         }
 
-        //싱글 스레드라는 가정하에, ID는 함수 성공시에 증가
-        ERROR_CODE CreateRequest(REQUEST_TYPE _RequestType = REQUEST_TYPE.RT_NONE, int _BufferSize = Data.DATA_DEFAULT_SIZE)
-        {
-            REQUEST_NODE NewRequest = new REQUEST_NODE(mNextCreateRequestID);
-
-            if(null == NewRequest)
-            {
-                return ERROR_CODE.HEC_FAIL_NEW;
-            }
-
-            ERROR_CODE ErrorCode = NewRequest.mRequest.Initialize(_RequestType, _BufferSize);
-            if(ERROR_CODE.HEC_COMPLETE != ErrorCode)
-            {
-                return ErrorCode;
-            }
-
-            NewRequest.mState = REQUEST_STATE.RT_NOT_USING;
-
-            mRequestList.Add(NewRequest);
-
-            ++mNextCreateRequestID;
-
-            return ERROR_CODE.HEC_COMPLETE;
-        }
-
-        ERROR_CODE GetRequest(out Request _OutRequest)
+        public ERROR_CODE GetRequest(out Request _OutRequest)
         {
             _OutRequest = null;
 
@@ -261,7 +263,7 @@ namespace Homura
             return ERROR_CODE.HEC_COMPLETE;
         }
 
-        ERROR_CODE ReturnRequest(int _ID)
+        public ERROR_CODE ReturnRequest(int _ID)
         {
             if( 0 > _ID || mRequestList.Count <= _ID)
             {
@@ -279,6 +281,30 @@ namespace Homura
                     break;
                 }
             }
+
+            return ERROR_CODE.HEC_COMPLETE;
+        }
+        //싱글 스레드라는 가정하에, ID는 함수 성공시에 증가
+        ERROR_CODE CreateRequest(REQUEST_TYPE _RequestType = REQUEST_TYPE.RT_NONE, int _BufferSize = Data.DATA_DEFAULT_SIZE)
+        {
+            REQUEST_NODE NewRequest = new REQUEST_NODE(mNextCreateRequestID);
+
+            if(null == NewRequest)
+            {
+                return ERROR_CODE.HEC_FAIL_NEW;
+            }
+
+            ERROR_CODE ErrorCode = NewRequest.mRequest.Initialize(_RequestType, _BufferSize);
+            if(ERROR_CODE.HEC_COMPLETE != ErrorCode)
+            {
+                return ErrorCode;
+            }
+
+            NewRequest.mState = REQUEST_STATE.RT_NOT_USING;
+
+            mRequestList.Add(NewRequest);
+
+            ++mNextCreateRequestID;
 
             return ERROR_CODE.HEC_COMPLETE;
         }

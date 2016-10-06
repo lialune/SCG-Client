@@ -37,7 +37,7 @@ namespace Homura
         LOG_SAVE_TYPE[] mLogSaveType = new LOG_SAVE_TYPE[(int)WARNING_LEVEL.WL_COUNT];
         List<LOG_NODE> mLogList = null;
         // 해당 경로는 유니티 프로젝트/Asset이지만 추후에 다른곳으로 변경할 필요가 있음
-        string mDefaultSavePath = Application.dataPath;
+        string mDefaultSavePath = Application.dataPath + "/Log";
         string mNowSavePath;
         float mElapsedTime;
         float mSaveInterval;
@@ -126,9 +126,22 @@ namespace Homura
         void PathChechAndCreate()
         {
             System.DateTime Time = System.DateTime.Now;
-            mNowSavePath = mDefaultSavePath + Time.Year + "/" + Time.Month + "/" + Time.Day;
-
+            mNowSavePath = mDefaultSavePath + "/" + Time.Year;
             DirectoryInfo DI = new System.IO.DirectoryInfo(mNowSavePath);
+            if (!DI.Exists)
+            {
+                DI.Create();
+            }
+
+            mNowSavePath = mNowSavePath + "/" + Time.Month;
+            DI = new System.IO.DirectoryInfo(mNowSavePath);
+            if (!DI.Exists)
+            {
+                DI.Create();
+            }
+
+            mNowSavePath = mNowSavePath + "/" + Time.Day;
+            DI = new System.IO.DirectoryInfo(mNowSavePath);
             if(!DI.Exists)
             {
                 DI.Create();
@@ -143,9 +156,9 @@ namespace Homura
                 {
                     mFileWriter.Close();
                 }
-                mFileWriter = new StreamWriter(mNowSavePath);
-                mFileWriter.AutoFlush = false;
             }
+            mFileWriter = new StreamWriter(mNowSavePath);
+            mFileWriter.AutoFlush = false;
         }
 
         void LogText(string _Text)
@@ -158,6 +171,7 @@ namespace Homura
             mElapsedTime -= Time.deltaTime;
             if(0f >= mElapsedTime)
             {
+                //PathChechAndCreate();
                 List<LOG_NODE>.Enumerator Enumer = mLogList.GetEnumerator();
                 while(Enumer.MoveNext())
                 {
@@ -171,7 +185,11 @@ namespace Homura
                         LogText(Enumer.Current.mLevel + " : " + Enumer.Current.mLog);
                     }
                 }
-                mFileWriter.Flush();
+                if(null != mFileWriter)
+                {
+                    mFileWriter.Flush();
+                    mFileWriter.Close();
+                }
                 mElapsedTime = mSaveInterval;
                 mLogList.Clear();
             }
