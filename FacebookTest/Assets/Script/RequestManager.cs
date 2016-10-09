@@ -146,11 +146,14 @@ namespace Homura
 
             _UriParam += "?";
             PARAM_LIST.Enumerator Enumer = mParamList.GetEnumerator();
-            while(Enumer.MoveNext())
+            for(int i = 0; mParamList.Count > i; ++i)
             {
+                Enumer.MoveNext();
                 _UriParam = _UriParam + Enumer.Current.Key + "=" + Enumer.Current.Value;
-                //여기부터 해야함
-                mParamList.
+                if(mParamList.Count >= i + 1)
+                {
+                    _UriParam += "&";
+                }
             }
 
             return ERROR_CODE.HEC_COMPLETE;

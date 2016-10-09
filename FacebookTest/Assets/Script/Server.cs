@@ -37,7 +37,7 @@ namespace Homura
         REQUEST_CALLBACK_FUNC_LIST mRequestCallbackList;
         FacebookModule mFaceBookModule;
 
-        ERROR_CODE Initialize()
+        public ERROR_CODE Initialize()
         {
             if(null == mPageNameList)
             {
@@ -129,7 +129,9 @@ namespace Homura
             }
 
             // 요청 시작
-            WWW WebObj = new WWW(DefaultUri + mPageNameList[_Request.GetRequestType()] + "/" + _Request);
+            string Param;
+            _Request.CreateUriParam(out Param);
+            WWW WebObj = new WWW(DefaultUri + mPageNameList[_Request.GetRequestType()] + "/" + Param);
             yield return WebObj;
             //요청 에러 여부 확인
             if (!string.IsNullOrEmpty(WebObj.error))
@@ -157,7 +159,7 @@ namespace Homura
             }
         }
 
-        public ERROR_CODE AddPageName(REQUEST_TYPE _RequestType, string _PageName)
+        public ERROR_CODE RegistCallback(REQUEST_TYPE _RequestType, string _PageName, REQUEST_CALLBACK_FUNC _Func)
         {
             if(REQUEST_TYPE.RT_NONE >= _RequestType || REQUEST_TYPE.RT_COUNT <= _RequestType)
             {
