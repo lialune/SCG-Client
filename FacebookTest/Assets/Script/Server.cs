@@ -10,20 +10,12 @@ namespace Homura
     using PARAM_LIST = Dictionary<string, string>;
     using PAGE_NAME_LIST = Dictionary<REQUEST_TYPE, string>;
     using REQUEST_CALLBACK_FUNC_LIST = Dictionary<REQUEST_TYPE, REQUEST_CALLBACK_FUNC>;
-    delegate ERROR_CODE REQUEST_CALLBACK_FUNC(Response _Responese);
+    public delegate ERROR_CODE REQUEST_CALLBACK_FUNC(Response _Responese);
 
     public enum LOGIN_MODULE_TYPE
     {
         LMT_FACEBOOK,
         LMT_GOOLE_PLUS,
-    }
-
-    public enum LOGIN_STATE
-    {
-        LS_NONE,
-        LS_WAIT_LOGIN,
-        LS_LOGIN_SUCCESS,
-        LS_LOGIN_FAIL
     }
 
     public class Server : MonoBehaviour
@@ -32,7 +24,7 @@ namespace Homura
         string Port;
         string ProjectName;
         string DefaultUri;
-        LOGIN_STATE mLoginState;
+        string mUserID;
         PAGE_NAME_LIST mPageNameList;
         REQUEST_CALLBACK_FUNC_LIST mRequestCallbackList;
         FacebookModule mFaceBookModule;
@@ -113,8 +105,6 @@ namespace Homura
             {
                 mFaceBookModule.Initialize();
             }
-            
-            mLoginState = LOGIN_STATE.LS_NONE;
 
             return ERROR_CODE.HEC_COMPLETE;
         }
@@ -152,6 +142,7 @@ namespace Homura
                 yield break;
             }
 
+            // 응답을 받았으므로 등록된 해당 이벤트로 등록된 콜백 함수를 호출
             ErrorCode = mRequestCallbackList[Res.GetRequestType()](Res);
             if(ERROR_CODE.HEC_COMPLETE != ErrorCode)
             {
@@ -161,7 +152,7 @@ namespace Homura
 
         public ERROR_CODE RegistCallback(REQUEST_TYPE _RequestType, string _PageName, REQUEST_CALLBACK_FUNC _Func)
         {
-            if(REQUEST_TYPE.RT_NONE >= _RequestType || REQUEST_TYPE.RT_COUNT <= _RequestType)
+            if (REQUEST_TYPE.RT_NONE >= _RequestType || REQUEST_TYPE.RT_COUNT <= _RequestType)
             {
                 return ERROR_CODE.HEC_NOT_VALID_KEY;
             }
@@ -176,42 +167,28 @@ namespace Homura
             {
                 return ERROR_CODE.HEC_OVERLAP_KEY;
             }
-
             mPageNameList.Add(_RequestType, _PageName);
 
+            REQUEST_CALLBACK_FUNC FuncTemp;
+            if (mRequestCallbackList.TryGetValue(_RequestType, out FuncTemp))
+            {
+                return ERROR_CODE.HEC_OVERLAP_KEY;
+            }
+            mRequestCallbackList.Add(_RequestType, _Func);
+
             return ERROR_CODE.HEC_COMPLETE;
         }
 
-        public ERROR_CODE Login(LOGIN_MODULE_TYPE _Type)
+        public string UserID
         {
-            switch(_Type)
-            {
-                case LOGIN_MODULE_TYPE.LMT_FACEBOOK:
-                    {
-                        mFaceBookModule.Initialize();
-                        mFaceBookModule.Login();
-                    }break;
-                case LOGIN_MODULE_TYPE.LMT_GOOLE_PLUS:
-                    {
-                    }break;
-                default:
-                    {
-                        return ERROR_CODE.HEC_NOT_VALID_VALUE;
-                    }
-            }
-            return ERROR_CODE.HEC_COMPLETE;
-        }
-
-        public LOGIN_STATE LoginState
-        {
-            set
-            {
-                mLoginState = value;
-            }
             get
             {
-                return mLoginState;
+                return mUserID;
             }
+            set
+            {
+                mUserID = value;
+            }            
         }
 
         ERROR_CODE AddRequestCallBack(REQUEST_TYPE _RequestType, REQUEST_CALLBACK_FUNC _Func)
@@ -250,20 +227,20 @@ namespace Homura
         {
             Log.Instanec.Update();
 
-            switch(mLoginState)
-            {
-                case LOGIN_STATE.LS_LOGIN_SUCCESS:
-                    {
-                        Homura.Request Req;
-                        RequestManager.Instance.GetRequest(out Req);
+        //    switch(mLoginState)
+        //    {
+        //        case LOGIN_STATE.LS_LOGIN_SUCCESS:
+        //            {
+        //                Homura.Request Req;
+        //                RequestManager.Instance.GetRequest(out Req);
 
-                        Req.Initialize(REQUEST_TYPE.RT_LOGIN);
-                        Req.AddParam("Type", "F");
-                        Req.AddParam("ID", mFaceBookModule.GetParam("ID"));
+        //                Req.Initialize(REQUEST_TYPE.RT_LOGIN);
+        //                Req.AddParam("Type", "F");
+        //                Req.AddParam("ID", mFaceBookModule.GetParam("ID"));
 
-                        StartCoroutine(RequestMessage(Req));
-                    }break;
-            }
+        //                StartCoroutine(RequestMessage(Req));
+        //            }break;
+        //    }
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Homura
             Server Module = GameObject.FindGameObjectWithTag("Server").GetComponent<Homura.Server>();
             if(null != Module)
             {
-                Module.Login(LOGIN_MODULE_TYPE.LMT_FACEBOOK);
+                //Module.Login(LOGIN_MODULE_TYPE.LMT_FACEBOOK);
             }
         }
 

@@ -42,19 +42,15 @@ namespace Homura
 
         void AuthCallback(ILoginResult _Result)
         {
-            Server sv = GameObject.FindGameObjectWithTag("Server").GetComponent<Server>();
             if (FB.IsLoggedIn)
             {
                 Facebook.Unity.AccessToken aToken = Facebook.Unity.AccessToken.CurrentAccessToken;
 
                 mParamList = JsonReader.Deserialize<PARAM_LIST>(aToken.ToJson());
-
-                sv.LoginState = LOGIN_STATE.LS_LOGIN_SUCCESS;
             }
             else
             {
                 Log.Instanec.Logged(Log.WARNING_LEVEL.WL_1, "User cancelled login");
-                sv.LoginState = LOGIN_STATE.LS_LOGIN_FAIL;
             }
         }
 

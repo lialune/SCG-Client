@@ -10,6 +10,10 @@ namespace Homura
         PARAM_LIST mParamList;
         REQUEST_TYPE mRequestType;
 
+        public Response()
+        {
+        }
+
         public ERROR_CODE Initialize(REQUEST_TYPE _RequestType, string _Data)
         {
             ERROR_CODE ErrorCode = base.Initialize(_Data.Length);
@@ -17,6 +21,13 @@ namespace Homura
             {
                 return ErrorCode;
             }
+
+            if (REQUEST_TYPE.RT_NONE > _RequestType || REQUEST_TYPE.RT_COUNT <= _RequestType)
+            {
+                return ERROR_CODE.HEC_NOT_DEFINE_REQUEST_TYPE;
+            }
+
+            mRequestType = _RequestType;
 
             if (null == mParamList)
             {
