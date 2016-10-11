@@ -4,7 +4,6 @@ using JsonFx.Json;
 
 namespace Homura
 {
-    using PARAM_LIST = Dictionary<string, string>;
     public class Response : Homura.Data
     {
         PARAM_LIST mParamList;
@@ -39,7 +38,7 @@ namespace Homura
             }
             else
             {
-                mParamList.Clear();
+                mParamList.mParamList.Clear();
             }
 
             ErrorCode = Append(_Data);
@@ -78,7 +77,7 @@ namespace Homura
             }
 
             string Value;
-            if (!mParamList.TryGetValue(_Key, out Value))
+            if (!mParamList.mParamList.TryGetValue(_Key, out Value))
             {
                 _Value = null;
                 return ERROR_CODE.HEC_NOT_VALID_KEY;

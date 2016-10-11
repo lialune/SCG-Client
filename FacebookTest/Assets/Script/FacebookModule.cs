@@ -6,16 +6,17 @@ using JsonFx.Json;
 
 namespace Homura
 {
-    using PARAM_LIST = Dictionary<string, string>;
 
     public class FacebookModule
     {
         PARAM_LIST mParamList;
+        Server mSv;
 
         public void Initialize()
         {
             if (!FB.IsInitialized)
             {
+                mSv = GameObject.FindGameObjectWithTag("Server").GetComponent<Server>();
                 FB.Init(InitCallBack, OnHideUnity);
             }
             else
@@ -29,7 +30,7 @@ namespace Homura
             }
             else
             {
-                mParamList.Clear();
+                mParamList.mParamList.Clear();
             }
         }
 
@@ -38,6 +39,7 @@ namespace Homura
             List<string> Perms = new List<string>() { "public_profile", "email" };
 
             FB.LogInWithReadPermissions(Perms, AuthCallback);
+            mSv.LoginState = LOGIN_STATE.LS_LOGIN_WAIT;
         }
 
         void AuthCallback(ILoginResult _Result)
@@ -47,10 +49,13 @@ namespace Homura
                 Facebook.Unity.AccessToken aToken = Facebook.Unity.AccessToken.CurrentAccessToken;
 
                 mParamList = JsonReader.Deserialize<PARAM_LIST>(aToken.ToJson());
+
+                mSv.LoginState = LOGIN_STATE.LS_LOGIN_SUCCESS;
             }
             else
             {
-                Log.Instanec.Logged(Log.WARNING_LEVEL.WL_1, "User cancelled login");
+                Log.Instance.Logged(Log.WARNING_LEVEL.WL_1, "User cancelled login");
+                mSv.LoginState = LOGIN_STATE.LS_LOGIN_FAIL;
             }
         }
 
@@ -61,7 +66,7 @@ namespace Homura
 
         public string GetParam(string _Key)
         {
-            return mParamList[_Key];
+            return mParamList.mParamList[_Key];
         }
 
         void InitCallBack()
@@ -72,7 +77,7 @@ namespace Homura
             }
             else
             {
-                Log.Instanec.Logged(Log.WARNING_LEVEL.WL_2, "Failed to Initialize the Facebook SDK");
+                Log.Instance.Logged(Log.WARNING_LEVEL.WL_2, "Failed to Initialize the Facebook SDK");
             }
         }
 

@@ -7,7 +7,6 @@ using Facebook.Unity;
 
 namespace Homura
 {
-    using PARAM_LIST = Dictionary<string, string>;
     using PAGE_NAME_LIST = Dictionary<REQUEST_TYPE, string>;
     using REQUEST_CALLBACK_FUNC_LIST = Dictionary<REQUEST_TYPE, REQUEST_CALLBACK_FUNC>;
     public delegate ERROR_CODE REQUEST_CALLBACK_FUNC(Response _Responese);
@@ -28,6 +27,7 @@ namespace Homura
         PAGE_NAME_LIST mPageNameList;
         REQUEST_CALLBACK_FUNC_LIST mRequestCallbackList;
         FacebookModule mFaceBookModule;
+        LOGIN_STATE mLoginState;
 
         public ERROR_CODE Initialize()
         {
@@ -49,18 +49,19 @@ namespace Homura
                 mRequestCallbackList.Clear();
             }
 
+            mLoginState = LOGIN_STATE.LS_NONE;
 
-            ERROR_CODE ErrorCode = Log.Instanec.Initialize(0f);
+            ERROR_CODE ErrorCode = Log.Instance.Initialize(0f);
             if(ERROR_CODE.HEC_COMPLETE != ErrorCode)
             {
                 Debug.Log("Server.Initialize() Log.Instance.Initialize() Error! ErrorCode : " + ErrorCode);
                 return ErrorCode;
             }
 
-            Log.Instanec.SetSaveType(Log.WARNING_LEVEL.WL_1, Log.LOG_SAVE_TYPE.LST_CONSOLE);
-            Log.Instanec.SetSaveType(Log.WARNING_LEVEL.WL_2, Log.LOG_SAVE_TYPE.LST_CONSOLE);
-            Log.Instanec.SetSaveType(Log.WARNING_LEVEL.WL_3, Log.LOG_SAVE_TYPE.LST_CONSOLE);
-            Log.Instanec.SetSaveType(Log.WARNING_LEVEL.WL_4, Log.LOG_SAVE_TYPE.LST_CONSOLE);
+            Log.Instance.SetSaveType(Log.WARNING_LEVEL.WL_1, Log.LOG_SAVE_TYPE.LST_CONSOLE);
+            Log.Instance.SetSaveType(Log.WARNING_LEVEL.WL_2, Log.LOG_SAVE_TYPE.LST_CONSOLE);
+            Log.Instance.SetSaveType(Log.WARNING_LEVEL.WL_3, Log.LOG_SAVE_TYPE.LST_CONSOLE);
+            Log.Instance.SetSaveType(Log.WARNING_LEVEL.WL_4, Log.LOG_SAVE_TYPE.LST_CONSOLE);
 
             ErrorCode = Homura.RequestManager.Instance.Initialize();
             if(ERROR_CODE.HEC_COMPLETE != ErrorCode)
@@ -76,17 +77,17 @@ namespace Homura
             {
                 return ERROR_CODE.HEC_FAIL_FILE_READ;
             }
-            IP = ParamList["IP"];
+            IP = ParamList.mParamList["IP"];
             if (null == IP || "" == IP)
             {
                 return ERROR_CODE.HEC_FAIL_FILE_READ;
             }
-            Port = ParamList["Port"];
+            Port = ParamList.mParamList["Port"];
             if (null == Port || "" == Port)
             {
                 return ERROR_CODE.HEC_FAIL_FILE_READ;
             }
-            ProjectName = ParamList["ProjectName"];
+            ProjectName = ParamList.mParamList["ProjectName"];
             if (null == ProjectName || "" == ProjectName)
             {
                 return ERROR_CODE.HEC_FAIL_FILE_READ;
@@ -114,7 +115,7 @@ namespace Homura
         {
             if (null == _Request)
             {
-                Log.Instanec.Logged(Log.WARNING_LEVEL.WL_2, "Server.RequestMessage() _Request null!");
+                Log.Instance.Logged(Log.WARNING_LEVEL.WL_2, "Server.RequestMessage() _Request null!");
                 yield break;
             }
 
@@ -126,7 +127,7 @@ namespace Homura
             //요청 에러 여부 확인
             if (!string.IsNullOrEmpty(WebObj.error))
             {
-                Log.Instanec.Logged(Log.WARNING_LEVEL.WL_2, "Server.RequestMessage() WebObj Error! ErrorMessage : " + WebObj.error);
+                Log.Instance.Logged(Log.WARNING_LEVEL.WL_2, "Server.RequestMessage() WebObj Error! ErrorMessage : " + WebObj.error);
                 yield break;
             }
 
@@ -138,7 +139,7 @@ namespace Homura
             ERROR_CODE ErrorCode = Res.Initialize(_Request.GetRequestType(), Data);
             if (ERROR_CODE.HEC_COMPLETE != ErrorCode)
             {
-                Log.Instanec.Logged(Log.WARNING_LEVEL.WL_2, "Server.RequestMessage() Response.Initialize() Error! ErrorMessage : " + ErrorCode);
+                Log.Instance.Logged(Log.WARNING_LEVEL.WL_2, "Server.RequestMessage() Response.Initialize() Error! ErrorMessage : " + ErrorCode);
                 yield break;
             }
 
@@ -146,7 +147,7 @@ namespace Homura
             ErrorCode = mRequestCallbackList[Res.GetRequestType()](Res);
             if(ERROR_CODE.HEC_COMPLETE != ErrorCode)
             {
-                Log.Instanec.Logged(Log.WARNING_LEVEL.WL_2, "Server.RequestMessage() Response.Initialize() Error! Request Callback Func Error! ErrorMessage : " + ErrorCode);
+                Log.Instance.Logged(Log.WARNING_LEVEL.WL_2, "Server.RequestMessage() Response.Initialize() Error! Request Callback Func Error! ErrorMessage : " + ErrorCode);
             }
         }
 
@@ -191,6 +192,33 @@ namespace Homura
             }            
         }
 
+        public void Login(LOGIN_MODULE_TYPE _Type)
+        {
+            switch(_Type)
+            {
+                case LOGIN_MODULE_TYPE.LMT_FACEBOOK:
+                    {
+                        mFaceBookModule.Initialize();
+                        mFaceBookModule.Login();
+                    }break;
+                case LOGIN_MODULE_TYPE.LMT_GOOLE_PLUS:
+                    {
+                    }break;
+            }
+        }
+
+        public LOGIN_STATE LoginState
+        {
+            get
+            {
+                return mLoginState;
+            }
+            set
+            {
+                mLoginState = value;
+            }
+        }
+
         ERROR_CODE AddRequestCallBack(REQUEST_TYPE _RequestType, REQUEST_CALLBACK_FUNC _Func)
         {
             if (REQUEST_TYPE.RT_NONE >= _RequestType || REQUEST_TYPE.RT_COUNT <= _RequestType)
@@ -219,13 +247,13 @@ namespace Homura
             ERROR_CODE ErrorCode = Initialize();
             if (ERROR_CODE.HEC_COMPLETE != ErrorCode)
             {
-                Log.Instanec.Logged(Log.WARNING_LEVEL.WL_4, "Fail Server.Initialize" + ErrorCode);
+                Log.Instance.Logged(Log.WARNING_LEVEL.WL_4, "Fail Server.Initialize" + ErrorCode);
             }
         }
 
         void Update()
         {
-            Log.Instanec.Update();
+            Log.Instance.Update();
 
         //    switch(mLoginState)
         //    {

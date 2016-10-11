@@ -95,6 +95,7 @@
     <Compile Include="Assets\Script\Log.cs" />
     <Compile Include="Assets\Script\LoginManager.cs" />
     <Compile Include="Assets\Script\Main.cs" />
+    <Compile Include="Assets\Script\ParamList.cs" />
     <Compile Include="Assets\Script\RequestManager.cs" />
     <Compile Include="Assets\Script\Response.cs" />
     <Compile Include="Assets\Script\Server.cs" />

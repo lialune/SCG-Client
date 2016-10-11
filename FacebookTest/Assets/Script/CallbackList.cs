@@ -22,11 +22,9 @@ namespace Homura
 
             if(Value.Equals("Success"))
             {
-
             }
             else
             {
-
             }
 
             return ERROR_CODE.HEC_COMPLETE;

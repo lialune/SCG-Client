@@ -4,8 +4,6 @@ using System.Collections.Generic;
 
 namespace Homura
 {
-    using PARAM_LIST = Dictionary<string, string>;
-
     public enum REQUEST_TYPE
     {
         RT_NONE,
@@ -59,7 +57,7 @@ namespace Homura
             }
             else
             {
-                mParamList.Clear();
+                mParamList.mParamList.Clear();
             }
 
             return ERROR_CODE.HEC_COMPLETE;
@@ -90,7 +88,7 @@ namespace Homura
 
             try
             {
-                mParamList.Add(_Key, _Value);
+                mParamList.mParamList.Add(_Key, _Value);
             }
             catch(System.ArgumentException)
             {
@@ -107,7 +105,7 @@ namespace Homura
                 return ERROR_CODE.HEC_NULL_DATA;
             }
 
-            if(mParamList.Remove(_Key))
+            if(mParamList.mParamList.Remove(_Key))
             {
                 return ERROR_CODE.HEC_COMPLETE;
             }
@@ -115,7 +113,7 @@ namespace Homura
             return ERROR_CODE.HEC_NOT_REGIST_KEY;
         }
 
-        public Dictionary<string, string> ParamList
+        public PARAM_LIST ParamList
         {
             get
             {
@@ -139,18 +137,19 @@ namespace Homura
                 return ERROR_CODE.HEC_NONE_SAVE_DATA;
             }
 
-            if(0 == mParamList.Count)
+            if(0 == mParamList.mParamList.Count)
             {
                 return ERROR_CODE.HEC_NONE_SAVE_DATA;
             }
 
             _UriParam += "?";
-            PARAM_LIST.Enumerator Enumer = mParamList.GetEnumerator();
-            for(int i = 0; mParamList.Count > i; ++i)
+
+            PARAM_LIST.Enumerator Enumer = new PARAM_LIST.Enumerator(mParamList.GetEnumerator());
+            for(int i = 0; mParamList.mParamList.Count > i; ++i)
             {
-                Enumer.MoveNext();
-                _UriParam = _UriParam + Enumer.Current.Key + "=" + Enumer.Current.Value;
-                if(mParamList.Count >= i + 1)
+                Enumer.mEnumerator.MoveNext();
+                _UriParam = _UriParam + Enumer.mEnumerator.Current.Key + "=" + Enumer.mEnumerator.Current.Value;
+                if(mParamList.mParamList.Count >= i + 1)
                 {
                     _UriParam += "&";
                 }

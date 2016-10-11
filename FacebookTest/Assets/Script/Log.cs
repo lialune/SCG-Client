@@ -43,7 +43,7 @@ namespace Homura
         float mSaveInterval;
         StreamWriter mFileWriter;
 
-        public static Log Instanec
+        public static Log Instance
         {
             get
             {
